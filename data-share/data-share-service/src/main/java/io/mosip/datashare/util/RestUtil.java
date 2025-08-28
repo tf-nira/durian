@@ -213,9 +213,14 @@ public class RestUtil {
 	 */
     public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
     	if (localRestTemplate == null) {			
-			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		   TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+			SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+					.loadTrustMaterial(null, acceptingTrustStrategy).build();
+			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
 			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
-					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+					.setMaxConnTotal(totalMaxConnection).setSSLSocketFactory(csf);
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
 			requestFactory.setHttpClient(httpClientBuilder.build());
 			localRestTemplate = new RestTemplate(requestFactory);
 		}
@@ -333,3 +338,4 @@ public class RestUtil {
         return request;
     }
 }
+
