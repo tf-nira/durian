@@ -31,6 +31,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import javax.net.ssl.SSLContext;
+import java.security.cert.X509Certificate;
 
 import com.google.gson.Gson;
 
