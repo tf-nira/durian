@@ -55,10 +55,10 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
 @Component
 public class RestUtil {
 
-	@Value("${data.share.default.resttemplate.httpclient.connections.max.per.host:20}")
+	@Value("${mosip.data.share.restTemplate.max-connection-per-route:20}")
 	private int maxConnectionPerRoute;
 
-	@Value("${data.share.default.resttemplate.httpclient.connections.max:100}")
+	@Value("${mosip.data.share.restTemplate.total-max-connections:100}")
 	private int totalMaxConnection;
 	
 	/** The environment. */
