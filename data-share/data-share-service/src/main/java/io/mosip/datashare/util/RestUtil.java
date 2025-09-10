@@ -31,6 +31,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.apache.http.ssl.TrustStrategy;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import javax.net.ssl.SSLContext;
+import java.security.cert.X509Certificate;
 
 import com.google.gson.Gson;
 
@@ -51,10 +55,10 @@ import io.mosip.kernel.core.util.TokenHandlerUtil;
 @Component
 public class RestUtil {
 
-	@Value("${data.share.default.resttemplate.httpclient.connections.max.per.host:20}")
+	@Value("${mosip.data.share.restTemplate.max-connection-per-route:20}")
 	private int maxConnectionPerRoute;
 
-	@Value("${data.share.default.resttemplate.httpclient.connections.max:100}")
+	@Value("${mosip.data.share.restTemplate.total-max-connections:100}")
 	private int totalMaxConnection;
 	
 	/** The environment. */
@@ -213,9 +217,14 @@ public class RestUtil {
 	 */
     public RestTemplate getRestTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
     	if (localRestTemplate == null) {			
-			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+		   TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
+			SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+					.loadTrustMaterial(null, acceptingTrustStrategy).build();
+			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
 			HttpClientBuilder httpClientBuilder = HttpClients.custom().setMaxConnPerRoute(maxConnectionPerRoute)
-					.setMaxConnTotal(totalMaxConnection).disableCookieManagement();
+					.setMaxConnTotal(totalMaxConnection).setSSLSocketFactory(csf);
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+
 			requestFactory.setHttpClient(httpClientBuilder.build());
 			localRestTemplate = new RestTemplate(requestFactory);
 		}
@@ -333,3 +342,4 @@ public class RestUtil {
         return request;
     }
 }
+
