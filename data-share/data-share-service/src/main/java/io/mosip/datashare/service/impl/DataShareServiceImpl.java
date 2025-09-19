@@ -6,9 +6,13 @@ import java.io.InputStream;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,12 +124,23 @@ public class DataShareServiceImpl implements DataShareService {
 	private String httpProtocol;
 	
 	/** Comman seperated subscriber ids that should be exclude meta update while fetching. */
-	@Value("#{${mosip.data.share.exclude-subscriber-ids: ''} == '' ? T(java.util.Collections).emptyList() : T(java.util.Arrays).asList('${mosip.data.share.exclude-subscriber-ids}'.split(','))}")
+	@Value("${mosip.data.share.exclude-subscriber-ids:}")
+	private String excludeSubscriberIds;
+	
 	private List<String> datashareExcludeSubscriberId;
-
 
 	/** The Constant DATETIME_PATTERN. */
 	private static final String DATETIME_PATTERN = "mosip.data.share.datetime.pattern";
+	
+	
+	@PostConstruct
+	public void init() {
+	    if (excludeSubscriberIds == null || excludeSubscriberIds.isBlank()) {
+	        datashareExcludeSubscriberId = Collections.emptyList();
+	    } else {
+	        datashareExcludeSubscriberId = Arrays.asList(excludeSubscriberIds.split(","));
+	    }
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
