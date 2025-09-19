@@ -7,6 +7,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -117,6 +118,10 @@ public class DataShareServiceImpl implements DataShareService {
 
 	@Value("${mosip.data.share.protocol}")
 	private String httpProtocol;
+	
+	/** Comman seperated subscriber ids that should be exclude meta update while fetching. */
+	@Value("#{${mosip.data.share.exclude-subscriber-ids: ''} == '' ? T(java.util.Collections).emptyList() : T(java.util.Arrays).asList('${mosip.data.share.exclude-subscriber-ids}'.split(','))}")
+	private List<String> datashareExcludeSubscriberId;
 
 
 	/** The Constant DATETIME_PATTERN. */
@@ -249,8 +254,15 @@ public class DataShareServiceImpl implements DataShareService {
 		LOGGER.debug(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.POLICYID.toString(), policyId,
 				"DataShareServiceImpl::getDataFile()::entry");
 		try {
-			boolean isDataShareAllow = getAndUpdateMetaData(randomShareKey, policyId, subcriberId,
-					dataShareGetResponse);
+			boolean isDataShareAllow = false;
+
+			if(datashareExcludeSubscriberId != null && datashareExcludeSubscriberId.contains(subcriberId)) {
+				LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.POLICYID.toString(),
+						policyId, "Skip the Metadata Update for partner"+subcriberId);
+			    isDataShareAllow = true;
+			} else {
+			    isDataShareAllow = getAndUpdateMetaData(randomShareKey, policyId, subcriberId, dataShareGetResponse);
+			}
 			if (isDataShareAllow) {
 				InputStream inputStream = objectStoreAdapter.getObject(subcriberId, policyId, null, null,
 						randomShareKey);
