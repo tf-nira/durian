@@ -1,5 +1,6 @@
 package io.mosip.datashare.service.impl;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -282,7 +283,9 @@ public class DataShareServiceImpl implements DataShareService {
 				InputStream inputStream = objectStoreAdapter.getObject(subcriberId, policyId, null, null,
 						randomShareKey);
 				if (inputStream != null) {
-					dataBytes = IOUtils.toByteArray(inputStream);
+					try (BufferedInputStream bis = new BufferedInputStream(inputStream, 128 * 1024)) {
+						dataBytes = IOUtils.toByteArray(bis);
+					}
 					dataShareGetResponse.setFileBytes(dataBytes);
 					LOGGER.info(LoggerFileConstant.SESSIONID.toString(), LoggerFileConstant.POLICYID.toString(),
 							policyId, "Successfully get the object from object store");
